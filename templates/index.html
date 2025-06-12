@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign Language Recognition</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 40px;
+        }
+        #webcam {
+            border: 5px solid #0d6efd;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        #final_prediction {
+            margin-top: 20px;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #198754;
+        }
+        .letter-image {
+            height: 150px;
+            width: auto;
+            margin: 10px;
+            border-radius: 10px;
+            border: 2px solid #198754;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container text-center">
+    <h1 class="text-primary">Real-Time Sign Language Recognition</h1>
+
+    <!-- Webcam Video -->
+    <img id="webcam" src="{{ url_for('video') }}" width="800" class="img-fluid" />
+
+    <p class="text-muted mt-3">Press CTRL+C in terminal to stop server</p>
+
+    <h2 id="final_prediction"></h2>
+
+    <!-- Input for typing letters -->
+    <div class="input-group mb-3 mt-5">
+      <input type="text" id="letterInput" class="form-control" placeholder="Enter letters (like ABC)">
+      <button class="btn btn-success" onclick="showSigns()">Show Signs</button>
+    </div>
+
+    <!-- Display images here -->
+    <div id="signImages" class="d-flex justify-content-center flex-wrap"></div>
+</div>
+
+<script>
+    function fetchPrediction() {
+        fetch('/prediction')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('final_prediction').innerText = data.prediction;
+        })
+        .catch(error => console.log(error));
+    }
+
+    setInterval(fetchPrediction, 500); // Every 500ms
+
+    function showSigns() {
+        let letters = document.getElementById('letterInput').value;
+        if (letters) {
+            fetch(`/get_images?text=${letters}`)
+                .then(response => response.json())
+                .then(data => {
+                    let container = document.getElementById('signImages');
+                    container.innerHTML = '';
+                    data.images.forEach(imgPath => {
+                        let img = document.createElement('img');
+                        img.src = imgPath;
+                        img.className = 'letter-image';
+                        container.appendChild(img);
+                    });
+                })
+                .catch(error => console.log(error));
+        }
+    }
+</script>
+
+</body>
+</html>
